@@ -1,0 +1,88 @@
+/* SPDX-License-Identifier: MIT
+ * XIAO signal allocation supplied for the user's LisM sensor wiring.
+ * GPIO half-duplex SDIO avoids connecting SPIM MOSI/MISO to the same pin.
+ * No assumed LisM FFC pin numbers: wire by verified signal names.
+ */
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/pwm/pwm.h>
+#include "../../jzf/cornix/cornix-stock-layouts.dtsi"
+#include "../../jzf/cornix/cornix_sensors.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &kscan_none;
+        zmk,physical-layout = &layout_49;
+    };
+
+    /* No local keys, no fabricated GPIO matrix or periodic key events. */
+    kscan_none: kscan_none {
+        compatible = "zmk,kscan-mock";
+        rows = <4>;
+        columns = <14>;
+        events = <>;
+    };
+
+    cornix_tb_paw: paw3222 {
+        compatible = "cornix,paw3222-gpio";
+        /* Scan all four signal pins on every boot; keep 3V3 and GND fixed. */
+        autodetect-gpios = <&xiao_d 7 GPIO_ACTIVE_HIGH>,
+                           <&xiao_d 8 GPIO_ACTIVE_HIGH>,
+                           <&xiao_d 9 GPIO_ACTIVE_HIGH>,
+                           <&xiao_d 10 GPIO_ACTIVE_HIGH>;
+        res-cpi = <1596>;
+        poll-interval-ms = <15>;
+        /* Suppress ±1-count jitter while accumulating deliberate slow motion. */
+        deadzone = <1>;
+    };
+
+    cornix_tb_listener: cornix_tb_listener {
+        compatible = "zmk,input-listener";
+        device = <&cornix_tb_paw>;
+    };
+
+    behaviors {
+        led_sync: ls { compatible = "cornix,led-sync"; #binding-cells = <2>; };
+    };
+};
+
+/* Route the XIAO's active-low RGB pins to three PWM channels so its onboard
+ * indicator can use the same 13/255 brightness ceiling as the Cornix LEDs. */
+&pinctrl {
+	xiao_rgb_pwm_default: xiao_rgb_pwm_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 26)>,
+				<NRF_PSEL(PWM_OUT1, 0, 30)>,
+				<NRF_PSEL(PWM_OUT2, 0, 6)>;
+		};
+	};
+
+	xiao_rgb_pwm_sleep: xiao_rgb_pwm_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 26)>,
+				<NRF_PSEL(PWM_OUT1, 0, 30)>,
+				<NRF_PSEL(PWM_OUT2, 0, 6)>;
+			low-power-enable;
+		};
+	};
+};
+
+&pwm0 {
+	pinctrl-0 = <&xiao_rgb_pwm_default>;
+	pinctrl-1 = <&xiao_rgb_pwm_sleep>;
+	status = "okay";
+};
+
+/ {
+	xiao_status_leds {
+		compatible = "pwm-leds";
+		xiao_status_red: led_red {
+			pwms = <&pwm0 0 PWM_USEC(1000) PWM_POLARITY_INVERTED>;
+		};
+		xiao_status_green: led_green {
+			pwms = <&pwm0 1 PWM_USEC(1000) PWM_POLARITY_INVERTED>;
+		};
+		xiao_status_blue: led_blue {
+			pwms = <&pwm0 2 PWM_USEC(1000) PWM_POLARITY_INVERTED>;
+		};
+	};
+};

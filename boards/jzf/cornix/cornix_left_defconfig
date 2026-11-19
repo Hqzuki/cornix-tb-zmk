@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: MIT
+
+CONFIG_ADC_NRFX_SAADC=y
+
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Use pinctrl
+CONFIG_PINCTRL=y
+
+# enable GPIO
+CONFIG_GPIO=y
+
+CONFIG_USE_DT_CODE_PARTITION=y
+CONFIG_BUILD_OUTPUT_UF2=y
+
+CONFIG_MPU_ALLOW_FLASH_WRITE=y
+CONFIG_NVS=y
+CONFIG_SETTINGS_NVS=y
+CONFIG_FLASH=y
+CONFIG_FLASH_PAGE_LAYOUT=y
+CONFIG_FLASH_MAP=y
+CONFIG_CLOCK_CONTROL_NRF=y
+CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y
+
+CONFIG_ZMK_SPLIT=y
+CONFIG_ZMK_SPLIT_ROLE_CENTRAL=n
+
+CONFIG_ZMK_BLE=y
+
+# never output usb
+CONFIG_ZMK_USB=n
+
+CONFIG_INPUT=y
+
+# RGB
+#CONFIG_SPI=n
+#CONFIG_ZMK_EXT_POWER=n
+
+CONFIG_EC11=y
+CONFIG_EC11_TRIGGER_GLOBAL_THREAD=y
+
+# Advertised preference only. ZMK disables automatic peripheral parameter
+# requests for split links; the central's ZMK_SPLIT_BLE_PREF_LATENCY sets the
+# initial connection parameters. Stock Cornix right now requests latency 0.
+CONFIG_BT_PERIPHERAL_PREF_LATENCY=5
+
+# vim: set ft=kconfig:

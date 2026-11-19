@@ -1,0 +1,15 @@
+# Cornix TB: XIAO is central and the Cornix halves are peripherals.
+---
+include:
+  - board: xiao_ble/nrf52840/zmk
+    shield: cornix_tb_central
+    snippet: studio-rpc-usb-uart
+    artifact-name: Cornix_tb_central
+
+  - board: cornix_left
+    shield: cornix_tb_peripheral
+    artifact-name: Cornix_tb_left
+
+  - board: cornix_right
+    shield: cornix_indicator cornix_tb_peripheral
+    artifact-name: Cornix_tb_right

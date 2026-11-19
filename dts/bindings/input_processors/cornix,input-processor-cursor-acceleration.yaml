@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+description: Mouse-layer-only velocity-scaled cursor acceleration
+compatible: "cornix,input-processor-cursor-acceleration"
+include: ip_zero_param.yaml
+properties:
+  mouse-layer:
+    type: int
+    required: true
+  start-delta:
+    type: int
+    required: true
+    description: Movement magnitude where acceleration starts
+  max-delta:
+    type: int
+    required: true
+    description: Movement magnitude where maximum acceleration is reached
+  max-multiplier:
+    type: int
+    required: true
+    description: Maximum cursor multiplier, including the 1x base speed
