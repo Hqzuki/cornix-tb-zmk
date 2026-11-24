@@ -271,9 +271,9 @@
         MAC {
             display-name = "MAC";
             bindings = <
-&kp ESC         &kp Q         &kp W         &kp E      &kp R        &kp T                               &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
-&kp TAB         &kp A         &kp S         &kp D      &kp F        &kp G                               &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
-&kp LEFT_SHIFT  &kp Z      &kp X         &kp C      &kp V        &kp B  &lt 6 LG(LS(N3))  &lt (6) LG(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
+&kp ESC         &kp Q      &kp W         &kp E      &kp R        &kp T                                      &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
+&kp TAB         &kp A      &kp S         &kp D      &kp F        &kp G                                      &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
+&kp LEFT_SHIFT  &kp Z      &kp X         &kp C      &kp V        &kp B  &lt (6) LG(LS(N3))  &lt (6) LG(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
 &kp LEFT_GUI    &kp LCTRL  &kp LEFT_ALT  &kp SPACE  &lt 3 LANG2  &mo 4                                      &mo 2  &kp LANG1             &nav_left  &nav_down        &nav_right
             >;
 
@@ -285,8 +285,8 @@
         WIN {
             display-name = "WIN";
             bindings = <
-&kp ESC         &kp Q      &kp W         &kp E      &kp R        &kp T                                      &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
-&kp TAB         &kp A      &kp S         &kp D      &kp F        &kp G                                      &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
+&kp ESC         &kp Q         &kp W         &kp E      &kp R        &kp T                               &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
+&kp TAB         &kp A         &kp S         &kp D      &kp F        &kp G                               &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
 &kp LEFT_SHIFT  &kp Z         &kp X         &kp C      &kp V        &kp B  &lt 6 PSCRN  &lt (6) LC(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
 &kp LCTRL       &kp LEFT_WIN  &kp LEFT_ALT  &kp SPACE  &lt 3 LANG2  &mo 4                               &mo 2  &kp LANG1             &nav_left  &nav_down        &nav_right
             >;
@@ -309,7 +309,7 @@
         BLUETOOTH {
             display-name = "BLUETOOTH";
             bindings = <
-&bootloader  &none  &none  &none  &none  &none                &bt0   &bt1   &bt2   &bt3   &bt4        &bootloader
+&bootloader  &bt4   &bt3   &bt2   &bt1   &bt0                 &bt0   &bt1   &bt2   &bt3   &bt4        &bootloader
 &none        &none  &none  &none  &none  &none                &none  &none  &none  &none  &none       &none
 &none        &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none       &none
 &none        &none  &none  &none  &none  &none                &none  &none         &none  &bt BT_CLR  &bt BT_CLR_ALL
@@ -353,6 +353,5 @@
 
             sensor-bindings = <&enc_off &enc_off>;
         };
-
     };
 };
