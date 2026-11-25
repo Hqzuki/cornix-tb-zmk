@@ -137,7 +137,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap A UP
+                &nav_hold_tap SQT UP
                 &window_up
             >;
         };
@@ -147,7 +147,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap A LEFT
+                &nav_hold_tap NONE LEFT
                 &window_left
             >;
         };
@@ -157,7 +157,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap A DOWN
+                &nav_hold_tap NONE DOWN
                 &window_down
             >;
         };
@@ -167,7 +167,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap A RIGHT
+                &nav_hold_tap NONE RIGHT
                 &window_right
             >;
         };
