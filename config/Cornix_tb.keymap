@@ -147,7 +147,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap NONE LEFT
+                &nav_hold_tap 0 LEFT
                 &window_left
             >;
         };
@@ -157,7 +157,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap NONE DOWN
+                &nav_hold_tap 0 DOWN
                 &window_down
             >;
         };
@@ -167,7 +167,7 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <
-                &nav_hold_tap NONE RIGHT
+                &nav_hold_tap 0 RIGHT
                 &window_right
             >;
         };
