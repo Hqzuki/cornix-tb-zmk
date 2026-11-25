@@ -297,7 +297,7 @@
         NUMFN {
             display-name = "NUMFN";
             bindings = <
-&numfn_1  &numfn_2   &numfn_3   &pair_square  &pair_paren     &kp BACKSLASH                &none  &none  &none  &none  &none  &none
+&numfn_1  &numfn_2   &numfn_3   &pair_square  &pair_paren     &kp BACKSLASH                &none  &none  &none  &none  &none  &bs_delete
 &numfn_4  &numfn_5   &numfn_6   &kp TILDE     &kp UNDERSCORE  &pair_brace                  &none  &none  &none  &none  &none  &none
 &numfn_7  &numfn_8   &numfn_9   &kp GRAVE     &kp COMMA       &kp PERIOD     &none  &none  &none  &none  &none  &none  &none  &none
 &numfn_0  &numfn_11  &numfn_12  &none         &none           &none                        &none  &none         &none  &none  &none
