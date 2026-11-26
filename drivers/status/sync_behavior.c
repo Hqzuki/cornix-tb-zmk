@@ -6,6 +6,10 @@
 #include <drivers/behavior.h>
 #include <zmk/behavior.h>
 #include "backend.h"
+
+/* Only the images whose devicetree has the led_sync node (Cornix halves and
+ * the TB central) define the behavior; the XIAO settings_reset image has none. */
+#if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 static int sync_pressed(struct zmk_behavior_binding *binding,
                         struct zmk_behavior_binding_event event) {
     (void)event;
@@ -26,3 +30,5 @@ static const struct behavior_driver_api sync_api = {
 };
 BEHAVIOR_DT_INST_DEFINE(0, NULL, NULL, NULL, NULL, POST_KERNEL,
                         CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &sync_api);
+
+#endif /* DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT) */
