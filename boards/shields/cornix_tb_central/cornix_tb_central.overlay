@@ -31,8 +31,8 @@
                            <&xiao_d 10 GPIO_ACTIVE_HIGH>;
         res-cpi = <1596>;
         poll-interval-ms = <15>;
-        /* Suppress ±1-count jitter while accumulating deliberate slow motion. */
-        deadzone = <1>;
+        /* Raw sensor output: no deadzone (user wants no motion shaping). */
+        deadzone = <0>;
     };
 
     cornix_tb_listener: cornix_tb_listener {
