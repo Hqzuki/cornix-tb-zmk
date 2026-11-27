@@ -23,9 +23,15 @@
 #endif
 #include "backend.h"
 LOG_MODULE_REGISTER(cornix_led, CONFIG_ZMK_LOG_LEVEL);
-static struct status_state state =
-    STATUS_STATE_INIT_ROLE(IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL) ||
-                           IS_ENABLED(CONFIG_CORNIX_RIGHT_PERIPHERAL));
+/* Outer LED: the right half keeps the host-profile role, the left shows the
+ * layer. Inner peer-link blink (blue while the central is not found): both
+ * halves show it; only the XIAO central hides it (its LED is local-only). */
+static struct status_state state = {
+    STATUS_STATE_DEFAULTS,
+    .hide_peer = IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL),
+    .layer_outer = !(IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL) ||
+                     IS_ENABLED(CONFIG_CORNIX_RIGHT_PERIPHERAL)),
+};
 K_MUTEX_DEFINE(state_lock);
 static bool ready;
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
