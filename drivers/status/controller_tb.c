@@ -66,7 +66,7 @@ static void wake_render(void);
 static uint8_t displayed_layer(void) {
     for (int i = zmk_keymap_highest_layer_active(); i >= 0; i--) {
         zmk_keymap_layer_id_t id = zmk_keymap_layer_index_to_id(i);
-        if (id != ZMK_KEYMAP_LAYER_ID_INVAL && id != STATUS_LAYER_MOUSE &&
+        if (id != ZMK_KEYMAP_LAYER_ID_INVAL &&
             zmk_keymap_layer_active(id)) {
             return id;
         }
