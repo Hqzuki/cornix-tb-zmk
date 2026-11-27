@@ -273,7 +273,7 @@
             bindings = <
 &kp ESC         &kp Q      &kp W         &kp E      &kp R        &kp T                                      &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
 &kp TAB         &kp A      &kp S         &kp D      &kp F        &kp G                                      &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
-&kp LEFT_SHIFT  &kp Z      &kp X         &kp C      &kp V        &kp B  &lt (6) LG(LS(N3))  &lt (6) LG(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
+&kp LEFT_SHIFT  &kp Z      &kp X         &kp C      &kp V        &kp B  &lt (3) LG(LS(N3))  &lt (3) LG(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
 &kp LEFT_GUI    &kp LCTRL  &kp LEFT_ALT  &kp SPACE  &lt 3 LANG2  &mo 4                                      &mo 2  &kp LANG1             &nav_left  &nav_down        &nav_right
             >;
 
@@ -287,7 +287,7 @@
             bindings = <
 &kp ESC         &kp Q         &kp W         &kp E      &kp R        &kp T                               &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
 &kp TAB         &kp A         &kp S         &kp D      &kp F        &kp G                               &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
-&kp LEFT_SHIFT  &kp Z         &kp X         &kp C      &kp V        &kp B  &lt 6 PSCRN  &lt (6) LC(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
+&kp LEFT_SHIFT  &kp Z         &kp X         &kp C      &kp V        &kp B  &lt 3 PSCRN  &lt (3) LC(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SLASH SEMICOLON
 &kp LCTRL       &kp LEFT_WIN  &kp LEFT_ALT  &kp SPACE  &lt 3 LANG2  &mo 4                               &mo 2  &kp LANG1             &nav_left  &nav_down        &nav_right
             >;
 
