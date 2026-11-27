@@ -176,9 +176,6 @@ static void render(struct k_work *work) {
     /* Send first: enabling the local LED rail may sleep for 10 ms. */
     struct status_frame frame = status_render(&snapshot, now);
 #if IS_ENABLED(CONFIG_CORNIX_TB_CENTRAL)
-    /* XIAO's onboard RGB is only a local battery/charging indicator. Do not
-     * mirror peer-link or low-battery alerts there; Cornix WS2812s show those. */
-    if (!snapshot.powered) { frame.inner = (struct status_rgb){0}; }
     frame.outer = (struct status_rgb){0};
 #endif
     if (ready) { status_backend_write(frame, now); }
