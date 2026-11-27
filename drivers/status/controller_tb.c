@@ -39,7 +39,7 @@ static int64_t next_sync[ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT];
 static uint8_t peripheral_links;
 static atomic_t resync; /* set on split reconnect */
 /* Changes are pushed at once; this periodic resend is only a safety net. */
-#define SYNC_RETRY_MS   500
+#define SYNC_RETRY_MS   100
 #define SYNC_REFRESH_MS 30000
 static void invalidate_sync(void) {
     for (size_t i = 0; i < ARRAY_SIZE(next_sync); i++) { next_sync[i] = 0; }
