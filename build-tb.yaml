@@ -1,7 +1,0 @@
-# XIAO trackball only — used by .github/workflows/build.yml (changed-only builds).
----
-include:
-  - board: xiao_ble/nrf52840/zmk
-    shield: cornix_tb_trackball_peripheral
-    artifact-name: Crorb_tb
-

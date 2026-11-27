@@ -1,7 +1,8 @@
 name: Firmware build (UF2)
 run-name: "UF2ビルド · ${{ github.ref_name }}"
-# Push: build only the firmware whose sources changed (right / left / tb).
-# Manual run (Actions > Run workflow): choose what to build.
+# Push: build only the firmware whose sources changed (right / left / tb), all in
+# parallel, then one "firmware" zip. Manual run (Actions > Run workflow): choose.
+# Build steps follow zmkfirmware/zmk's build-user-config.yml at the pinned ZMK.
 on:
   workflow_dispatch:
     inputs:
@@ -15,13 +16,11 @@ on:
       - "**"
 
 jobs:
-  changes:
+  matrix:
     runs-on: ubuntu-22.04
     outputs:
-      right: ${{ steps.pick.outputs.right }}
-      left: ${{ steps.pick.outputs.left }}
-      tb: ${{ steps.pick.outputs.tb }}
-      reset: ${{ steps.pick.outputs.reset }}
+      build_matrix: ${{ steps.pick.outputs.build_matrix }}
+      any: ${{ steps.pick.outputs.any }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,13 +31,14 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           set -eu
-          right=false; left=false; tb=false; reset=false
+          names=""
+          add() { names="$names $*"; }
           case "$TARGETS" in
-            all)   right=true; left=true; tb=true; reset=true ;;
-            right) right=true ;;
-            left)  left=true ;;
-            tb)    tb=true ;;
-            reset) reset=true ;;
+            all)   add Crorb_right Crorb_left Crorb_tb Crorb_right_reset Crorb_left_reset Crorb_tb_reset ;;
+            right) add Crorb_right ;;
+            left)  add Crorb_left ;;
+            tb)    add Crorb_tb ;;
+            reset) add Crorb_right_reset Crorb_left_reset Crorb_tb_reset ;;
             changed)
               if [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
                  && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
@@ -48,47 +48,103 @@ jobs:
               fi
               echo "Changed files:"; echo "$files"
               any() { echo "$files" | grep -Eq "$1"; }
-              # Shared by every image
-              common='^(Kconfig|CMakeLists\.txt|zephyr/|dts/|drivers/status/|config/west\.yml|\.github/workflows/)'
-              if any "$common"; then right=true; left=true; tb=true; fi
-              any '^(config/|boards/jzf/|boards/shields/(cornix_tb_right_central|cornix_indicator)/|drivers/keymap/|build-right\.yaml)' && right=true
-              any '^(boards/jzf/|boards/shields/(cornix_tb_peripheral|cornix_indicator)/|build-left\.yaml)' && left=true
-              any '^(boards/shields/cornix_tb_trackball_peripheral/|drivers/trackball/|boards/jzf/cornix/(cornix-stock-layouts\.dtsi|cornix_sensors\.dtsi)|build-tb\.yaml)' && tb=true
-              any '^build-reset\.yaml' && reset=true
+              if any '^(Kconfig|CMakeLists\.txt|zephyr/|dts/|drivers/status/|config/west\.yml|build\.yaml|\.github/workflows/)'; then
+                add Crorb_right Crorb_left Crorb_tb
+              fi
+              any '^(config/|boards/jzf/|boards/shields/(cornix_tb_right_central|cornix_indicator)/|drivers/keymap/)' && add Crorb_right
+              any '^(boards/jzf/|boards/shields/(cornix_tb_peripheral|cornix_indicator)/)' && add Crorb_left
+              any '^(boards/shields/cornix_tb_trackball_peripheral/|drivers/trackball/|boards/jzf/cornix/(cornix-stock-layouts\.dtsi|cornix_sensors\.dtsi))' && add Crorb_tb
               ;;
           esac
-          echo "right=$right left=$left tb=$tb reset=$reset"
-          { echo "right=$right"; echo "left=$left"; echo "tb=$tb"; echo "reset=$reset"; } >> "$GITHUB_OUTPUT"
+          list=$(printf '%s\n' $names | sort -u | grep -v '^$' | paste -sd, - || true)
+          echo "Building: ${list:-nothing}"
+          if [ -z "$list" ]; then echo "any=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          matrix=$(LIST="$list" yq -oj -I0 '{"include": [.include[] | select(."artifact-name" as $n | strenv(LIST) | split(",") | contains([$n]))]}' build.yaml)
+          echo "$matrix"
+          echo "build_matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "any=true" >> "$GITHUB_OUTPUT"
 
-  # Same ZMK commit as config/west.yml; bump all four together.
-  # The jobs run one after another: ZMK's reusable workflow merges and deletes
-  # every "artifact-*" upload of the run, so parallel calls broke each other's
-  # merge step.
-  right:
-    needs: changes
-    if: needs.changes.outputs.right == 'true'
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
-    with:
-      build_matrix_path: build-right.yaml
-      archive_name: firmware-right
-  left:
-    needs: [changes, right]
-    if: ${{ !cancelled() && needs.changes.outputs.left == 'true' }}
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
-    with:
-      build_matrix_path: build-left.yaml
-      archive_name: firmware-left
-  tb:
-    needs: [changes, left]
-    if: ${{ !cancelled() && needs.changes.outputs.tb == 'true' }}
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
-    with:
-      build_matrix_path: build-tb.yaml
-      archive_name: firmware-tb
-  reset:
-    needs: [changes, tb]
-    if: ${{ !cancelled() && needs.changes.outputs.reset == 'true' }}
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
-    with:
-      build_matrix_path: build-reset.yaml
-      archive_name: firmware-reset
+  build:
+    needs: matrix
+    if: needs.matrix.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.build_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare variables
+        shell: bash -x {0}
+        env:
+          board: ${{ matrix.board }}
+          shield: ${{ matrix.shield }}
+          artifact_name: ${{ matrix.artifact-name }}
+          snippet: ${{ matrix.snippet }}
+        run: |
+          echo "build_dir=$(mktemp -d)" >> $GITHUB_ENV
+          new_tmp_dir="${TMPDIR:-/tmp}/zmk-config"
+          mkdir -p "${new_tmp_dir}"
+          echo "base_dir=${new_tmp_dir}" >> $GITHUB_ENV
+          if [ -n "${snippet}" ]; then extra_west_args="-S \"${snippet}\""; fi
+          echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
+          echo "extra_west_args=${extra_west_args:-}" >> $GITHUB_ENV
+          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"} -DZMK_EXTRA_MODULES='${GITHUB_WORKSPACE}'" >> $GITHUB_ENV
+          echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
+          echo "artifact_name=${artifact_name}" >> $GITHUB_ENV
+      - name: Copy config files to isolated temporary directory
+        run: |
+          mkdir "${{ env.base_dir }}/config"
+          cp -R config/* "${{ env.base_dir }}/config/"
+      - name: Cache west modules
+        uses: actions/cache@v4
+        continue-on-error: true
+        env:
+          cache_name: cache-zephyr-${{ env.zephyr_version }}-modules
+        with:
+          path: |
+            ${{ env.base_dir }}/modules/
+            ${{ env.base_dir }}/tools/
+            ${{ env.base_dir }}/zephyr/
+            ${{ env.base_dir }}/bootloader/
+            ${{ env.base_dir }}/zmk/
+          key: ${{ runner.os }}-build-${{ env.cache_name }}-${{ hashFiles('**/west.yml', '**/build.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache_name }}-
+            ${{ runner.os }}-build-
+      - name: West Init
+        working-directory: ${{ env.base_dir }}
+        run: west init -l "${{ env.base_dir }}/config"
+      - name: West Update
+        working-directory: ${{ env.base_dir }}
+        run: west update --fetch-opt=--filter=tree:0
+      - name: West Zephyr export
+        working-directory: ${{ env.base_dir }}
+        run: west zephyr-export
+      - name: West Build (${{ env.display_name }})
+        working-directory: ${{ env.base_dir }}
+        shell: sh -x {0}
+        run: west build -s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}" ${{ env.extra_west_args }} -- -DZMK_CONFIG=${{ env.base_dir }}/config ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
+      - name: Rename artifacts
+        run: |
+          mkdir "${{ env.build_dir }}/artifacts"
+          cp "${{ env.build_dir }}/zephyr/zmk.uf2" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.uf2"
+      - name: Archive (${{ env.display_name }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-${{ env.artifact_name }}
+          path: ${{ env.build_dir }}/artifacts
+
+  merge:
+    needs: build
+    if: ${{ !cancelled() && needs.build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    name: Merge Output Artifacts
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: firmware
+          pattern: artifact-*
+          delete-merged: true
