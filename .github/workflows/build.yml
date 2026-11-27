@@ -1,12 +1,91 @@
 name: Firmware build (UF2)
 run-name: "UF2ビルド · ${{ github.ref_name }}"
+# Push: build only the firmware whose sources changed (right / left / tb).
+# Manual run (Actions > Run workflow): choose what to build.
 on:
   workflow_dispatch:
+    inputs:
+      targets:
+        description: "What to build"
+        type: choice
+        default: changed
+        options: [changed, all, right, left, tb, reset]
   push:
     branches:
       - "**"
 
 jobs:
-  build:
-    # Same ZMK commit as config/west.yml; bump both together.
+  changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      right: ${{ steps.pick.outputs.right }}
+      left: ${{ steps.pick.outputs.left }}
+      tb: ${{ steps.pick.outputs.tb }}
+      reset: ${{ steps.pick.outputs.reset }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pick
+        env:
+          TARGETS: ${{ github.event.inputs.targets || 'changed' }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -eu
+          right=false; left=false; tb=false; reset=false
+          case "$TARGETS" in
+            all)   right=true; left=true; tb=true; reset=true ;;
+            right) right=true ;;
+            left)  left=true ;;
+            tb)    tb=true ;;
+            reset) reset=true ;;
+            changed)
+              if [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
+                 && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+                files=$(git diff --name-only "$BEFORE" HEAD)
+              else
+                files=$(git show --name-only --format= HEAD)
+              fi
+              echo "Changed files:"; echo "$files"
+              any() { echo "$files" | grep -Eq "$1"; }
+              # Shared by every image
+              common='^(Kconfig|CMakeLists\.txt|zephyr/|dts/|drivers/status/|config/west\.yml|\.github/workflows/)'
+              if any "$common"; then right=true; left=true; tb=true; fi
+              any '^(config/|boards/jzf/|boards/shields/(cornix_tb_right_central|cornix_indicator)/|drivers/keymap/|build-right\.yaml)' && right=true
+              any '^(boards/jzf/|boards/shields/(cornix_tb_peripheral|cornix_indicator)/|build-left\.yaml)' && left=true
+              any '^(boards/shields/cornix_tb_trackball_peripheral/|drivers/trackball/|boards/jzf/cornix/(cornix-stock-layouts\.dtsi|cornix_sensors\.dtsi)|build-tb\.yaml)' && tb=true
+              any '^build-reset\.yaml' && reset=true
+              ;;
+          esac
+          echo "right=$right left=$left tb=$tb reset=$reset"
+          { echo "right=$right"; echo "left=$left"; echo "tb=$tb"; echo "reset=$reset"; } >> "$GITHUB_OUTPUT"
+
+  # Same ZMK commit as config/west.yml; bump all four together.
+  right:
+    needs: changes
+    if: needs.changes.outputs.right == 'true'
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
+    with:
+      build_matrix_path: build-right.yaml
+      archive_name: firmware-right
+  left:
+    needs: changes
+    if: needs.changes.outputs.left == 'true'
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
+    with:
+      build_matrix_path: build-left.yaml
+      archive_name: firmware-left
+  tb:
+    needs: changes
+    if: needs.changes.outputs.tb == 'true'
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
+    with:
+      build_matrix_path: build-tb.yaml
+      archive_name: firmware-tb
+  reset:
+    needs: changes
+    if: needs.changes.outputs.reset == 'true'
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
+    with:
+      build_matrix_path: build-reset.yaml
+      archive_name: firmware-reset

@@ -1,0 +1,7 @@
+# Left half only — used by .github/workflows/build.yml (changed-only builds).
+---
+include:
+  - board: cornix_left
+    shield: cornix_indicator cornix_tb_peripheral
+    artifact-name: Crorb_left
+

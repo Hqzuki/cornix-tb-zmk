@@ -1,0 +1,8 @@
+# Right half (central) only — used by .github/workflows/build.yml (changed-only builds).
+---
+include:
+  - board: cornix_right
+    shield: cornix_indicator cornix_tb_right_central
+    snippet: studio-rpc-usb-uart
+    artifact-name: Crorb_right
+
