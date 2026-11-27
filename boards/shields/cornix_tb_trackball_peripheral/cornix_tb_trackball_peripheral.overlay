@@ -33,6 +33,10 @@
                            <&xiao_d 10 GPIO_ACTIVE_HIGH>;
         res-cpi = <1596>;
         poll-interval-ms = <5>;
+        /* Group slow motion: send once 3 counts are gathered or after 10 ms,
+         * so X and Y move together (no stair-steps); fast motion is unchanged. */
+        batch-ms = <10>;
+        batch-counts = <3>;
         /* Raw sensor output: no deadzone (user wants no motion shaping). */
         deadzone = <0>;
     };

@@ -19,3 +19,11 @@ properties:
     type: int
     default: 1
     description: Per-axis raw-count deadzone; sub-threshold deltas are accumulated and cancelling jitter is discarded
+  batch-ms:
+    type: int
+    default: 0
+    description: Hold slow motion up to this many ms so X and Y are sent together (0 = off)
+  batch-counts:
+    type: int
+    default: 0
+    description: Send at once when |dx|+|dy| reaches this many counts

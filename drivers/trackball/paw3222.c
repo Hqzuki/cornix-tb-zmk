@@ -34,6 +34,7 @@ struct paw_dev_config {
     const struct paw_config *pins;
     uint16_t cpi, interval;
     uint8_t deadzone;
+    uint16_t batch_ms, batch_counts;
 };
 struct paw_data {
     const struct device *dev;
@@ -45,6 +46,8 @@ struct paw_data {
     atomic_t suspended;
     uint8_t misses;
     int16_t pending_x, pending_y;
+    int32_t batch_x, batch_y;
+    int64_t last_emit;
 };
 /* Probe every signal-pin permutation on boot; no mapping is written to flash. */
 K_THREAD_STACK_DEFINE(paw_stack, 1536);
@@ -205,6 +208,26 @@ static bool filter_micro_vibration(struct paw_data *d, int x, int y, uint8_t dea
     return true;
 }
 
+static void batch_add(struct paw_data *d, int x, int y) {
+    d->batch_x += x;
+    d->batch_y += y;
+}
+
+static void batch_flush(struct paw_data *d, const struct paw_dev_config *cfg, bool force) {
+    if (!d->batch_x && !d->batch_y) { return; }
+    int64_t now = k_uptime_get();
+    int travel = delta_magnitude(d->batch_x) + delta_magnitude(d->batch_y);
+    if (!force && travel < cfg->batch_counts && now - d->last_emit < cfg->batch_ms) { return; }
+    while (d->batch_x || d->batch_y) { /* split anything beyond int8 range */
+        int ox = CLAMP(d->batch_x, -127, 127), oy = CLAMP(d->batch_y, -127, 127);
+        input_report_rel(d->dev, INPUT_REL_X, ox, false, K_FOREVER);
+        input_report_rel(d->dev, INPUT_REL_Y, oy, true, K_FOREVER);
+        d->batch_x -= ox;
+        d->batch_y -= oy;
+    }
+    d->last_emit = now;
+}
+
 static void sample_work(struct k_work *work) {
     struct paw_data *d = CONTAINER_OF(k_work_delayable_from_work(work), struct paw_data, work);
     const struct paw_dev_config *cfg = d->dev->config;
@@ -235,11 +258,15 @@ static void sample_work(struct k_work *work) {
         if (read_xy(c, &x, &y) == 0 && (x || y) &&
             filter_micro_vibration(d, (int8_t)x, (int8_t)y, cfg->deadzone,
                                    &filtered_x, &filtered_y)) {
-            input_report_rel(d->dev, INPUT_REL_X, (int8_t)filtered_x, false, K_FOREVER);
-            input_report_rel(d->dev, INPUT_REL_Y, (int8_t)filtered_y, true, K_FOREVER);
+            batch_add(d, filtered_x, filtered_y);
         }
     }
-    if (gpio_pin_get_dt(&c->motion) > 0) {
+    /* Slow motion: hold tiny deltas until batch_counts or batch_ms so X and Y
+     * travel together (no stair-steps over the split link); fast motion and
+     * the end of a movement are sent at once. */
+    bool moving = gpio_pin_get_dt(&c->motion) > 0;
+    batch_flush(d, cfg, !moving);
+    if (moving) {
         schedule(d, K_MSEC(cfg->interval));
         return;
     }
@@ -349,6 +376,7 @@ static int paw_pm_action(const struct device *dev, enum pm_device_action action)
         .pins = &paw_pins_##n, \
         .cpi = DT_INST_PROP(n, res_cpi), .interval = DT_INST_PROP(n, poll_interval_ms), \
         .deadzone = DT_INST_PROP_OR(n, deadzone, 1), \
+        .batch_ms = DT_INST_PROP(n, batch_ms), .batch_counts = DT_INST_PROP(n, batch_counts), \
     }; \
     PM_DEVICE_DT_INST_DEFINE(n, paw_pm_action); \
     DEVICE_DT_INST_DEFINE(n, paw_init, PM_DEVICE_DT_INST_GET(n), &paw_data_##n, &paw_config_##n, \
