@@ -1,6 +1,6 @@
 # トラックボールの挙動
 
-PAW3222をXIAO BLE Centralへ接続し、左右Cornixへ分割キーボードの入力を送ります。センサー処理の実装は`drivers/trackball/`です。
+PAW3222をXIAO BLE（Peripheral）へ接続し、ボールの動きをZMKのinput splitでCornix右手（Central）へ転送します。入力処理（XY入替・AML・PAN・ジェスチャー）は右手側で行います。センサー処理の実装は`drivers/trackball/`です。
 
 ## 起動時のセンサー検出
 
@@ -18,14 +18,14 @@ PAW3222をXIAO BLE Centralへ接続し、左右Cornixへ分割キーボードの
 | デッドゾーン | 1カウント／軸 | 軸ごとの小さな揺れを一時蓄積し、範囲内なら出力を抑える。逆向きの揺れは相殺される |
 | カーソル加速 | MOUSEレイヤーのみ | 移動量3カウントを超えると加速し、16以上で最大3倍。小さい動きは基本速度を保つ |
 
-入力処理の向き補正・スケーリングは、センサーの取り付け方向に合わせて中央シールドのkeymap overlayで設定しています。現状は基本カーソル動作でX/Y反転と2/3スケーリングを適用します。
+入力処理の向き補正・スケーリングは、センサーの取り付け方向に合わせて右Centralシールドのkeymapで設定しています。現状は基本カーソル動作でX/Y反転と2/3スケーリングを適用します。
 
 ## PANとGESTURE
 
 - **PAN（レイヤー4）**：X方向を横スクロールへ変換します。軸ロックで動き始めの方向を早めに固定し、スクロール量は`zip_scroll_scaler 1 12`です。
 - **GESTURE（レイヤー5）**：軸ロック後のボール方向をジェスチャーとして解釈し、カーソル移動は出しません。設定はストローク100、移動閾値6、クールダウン250 ms、eager mode有効です。
 - 左右ジェスチャーは仮想デスクトップ移動、上下ジェスチャーはOSのウィンドウ概要操作を送ります。Windows系はWin+Tab、Mac系はControl+↑／↓です。左右はWindows系がWin+Control+←／→、Mac系がControl+←／→です。
-- OS別のキー列は`boards/shields/cornix_tb_central/cornix_tb_central.keymap`で定義されています。
+- OS別のキー列は`boards/shields/cornix_tb_right_central/cornix_tb_right_central.keymap`で定義されています。
 
 ## 自動低電力ダウンシフト
 

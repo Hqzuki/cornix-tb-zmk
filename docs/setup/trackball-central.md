@@ -1,10 +1,10 @@
 # Cornix TB
 
-XIAO BLE nRF52840をCentral、左右のCornixをPeripheralにするTB専用リポジトリです。キーマップは`config/Cornix_tb.keymap`、Keymap Editorの定義は`config/Cornix_tb.json`です。
+Cornix右手をCentral、Cornix左手とXIAO BLE nRF52840（トラックボール）をPeripheralにするTB専用リポジトリです。キーマップは`config/Cornix_tb.keymap`、Keymap Editorの定義は`config/Cornix_tb.json`です。
 
 ## 配線
 
-中央シールドの設定は`boards/shields/cornix_tb_central/`、右Peripheralの設定は`boards/shields/cornix_tb_peripheral/`、PAW3222ドライバーは`drivers/trackball/`にあります。
+右Centralの設定は`boards/shields/cornix_tb_right_central/`、左Peripheralは`boards/shields/cornix_tb_peripheral/`、XIAOは`boards/shields/cornix_tb_trackball_peripheral/`、PAW3222ドライバーは`drivers/trackball/`にあります。
 
 | PAW3222信号 | XIAOピン |
 | --- | --- |
@@ -22,7 +22,7 @@ XIAO BLE nRF52840をCentral、左右のCornixをPeripheralにするTB専用リ�
 - レイヤー5（GESTURE）でボールを動かすとウィンドウ／デスクトップ操作ジェスチャーを送ります。ESDFカーソル移動は使いません。
 - 自動マウスレイヤー（レイヤー6）は、LANG1またはLANG2を押すと解除します。
 - BLUETOOTHレイヤー（3）ではCornix内側LEDに左右それぞれの電池残量を表示します。緑＝51〜100%、黄＝21〜50%、赤＝0〜20%。XIAO内蔵LEDはUSB給電・充電表示に使います。
-- XIAO Centralは、約5分でDeep Sleepに入ります。Deep Sleep中はボールのMOTION信号で起床し、左右とホストへ再接続します。キー入力だけでは起床しません。
+- XIAOは、約5分でDeep Sleepに入ります。Deep Sleep中はボールのMOTION信号で起床し、右手へ再接続します。キー入力では起床しません。
 
 ## 確認範囲
 

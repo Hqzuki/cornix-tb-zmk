@@ -19,8 +19,8 @@
 | 変更する内容 | 主なファイル |
 | --- | --- |
 | キー配列・レイヤー名 | `config/Cornix_tb.keymap` |
-| トラックボール入力処理・各レイヤーのセンサー動作 | `boards/shields/cornix_tb_central/cornix_tb_central.keymap` |
-| センサーのピン候補・CPI・デッドゾーン | `boards/shields/cornix_tb_central/cornix_tb_central.overlay` |
+| トラックボール入力処理・各レイヤーのセンサー動作 | `boards/shields/cornix_tb_right_central/cornix_tb_right_central.keymap` |
+| センサーのピン候補・CPI・デッドゾーン | `boards/shields/cornix_tb_trackball_peripheral/cornix_tb_trackball_peripheral.overlay` |
 | レイヤー／接続先のLED表示 | `drivers/status/patterns.h` |
 | LED更新・左右への状態同期 | `drivers/status/controller_tb.c` |
 | PAW3222通信・自動判定・省電力処理 | `drivers/trackball/` |
