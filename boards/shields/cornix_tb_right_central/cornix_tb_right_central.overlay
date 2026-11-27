@@ -5,6 +5,10 @@
  * pipeline for the XIAO trackball peripheral.
  */
 
+/* Tells the board-level cornix.keymap (which ZMK picks for cornix_right) to pull
+ * in this shield's real keymap instead of its all-&none placeholder. */
+#define CORNIX_TB_RIGHT_CENTRAL_KEYMAP 1
+
 / {
     /* Proxy for the trackball's input device. The XIAO peripheral declares a
      * zmk,input-split node with the same reg; events it forwards over BLE are

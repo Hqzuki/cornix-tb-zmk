@@ -1,6 +1,12 @@
 /* SPDX-License-Identifier: MIT
- * TB builds provide the actual map from the shield keymap.
+ * ZMK selects this board-level keymap for the Cornix boards (it wins over the
+ * shield keymap). The right-half central build defines
+ * CORNIX_TB_RIGHT_CENTRAL_KEYMAP in its shield overlay, so it gets the real TB
+ * keymap; peripheral builds keep the inert placeholder below.
  */
+#ifdef CORNIX_TB_RIGHT_CENTRAL_KEYMAP
+#include "../../shields/cornix_tb_right_central/cornix_tb_right_central.keymap"
+#else
 #include <behaviors.dtsi>
 / {
     keymap {
@@ -15,3 +21,4 @@
         };
     };
 };
+#endif
