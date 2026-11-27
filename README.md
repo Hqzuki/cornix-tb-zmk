@@ -19,7 +19,7 @@ Cornix右手をCentral、Cornix左手とXIAO BLE（PAW3222トラックボール�
 
 GitHub Actionsの成功した[ビルド](https://github.com/Hqzuki/cornix-tb-zmk/actions)から`firmware`成果物を取得します。
 
-- `Crorb_right`：Cornix右手（Central、ホストには「Crorb_right」と表示）
+- `Crorb_right`：Cornix右手（Central、ホストには「Crorb」と表示）
 - `Crorb_left`：Cornix左手（Peripheral）
 - `Crorb_tb`：XIAOトラックボール（Peripheral）
 - `*_reset`：settings_reset用。先にresetを書き込んでから通常のUF2を書き込みます

@@ -48,7 +48,7 @@ endif # BOARD_CORNIX_LEFT && SHIELD_CORNIX_TB_PERIPHERAL
 # the rest (peripheral count, Studio, tuning).
 if BOARD_CORNIX_RIGHT
 config ZMK_KEYBOARD_NAME
-    default "Crorb_right"
+    default "Crorb"
 config ZMK_SPLIT
     default y
 config ZMK_SPLIT_ROLE_CENTRAL
