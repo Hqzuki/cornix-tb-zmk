@@ -30,7 +30,7 @@
                            <&xiao_d 9 GPIO_ACTIVE_HIGH>,
                            <&xiao_d 10 GPIO_ACTIVE_HIGH>;
         res-cpi = <1596>;
-        poll-interval-ms = <15>;
+        poll-interval-ms = <5>;
         /* Raw sensor output: no deadzone (user wants no motion shaping). */
         deadzone = <0>;
     };
