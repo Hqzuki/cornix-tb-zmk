@@ -56,9 +56,10 @@
 
 &cornix_tb_listener {
     /* Sensor is mounted 90 deg from the first guess: swap X/Y; X sign confirmed on hardware, Y not yet. */
+    /* &precision_scale halves the cursor while Space (&precision) is held on MOUSE. */
     input-processors = <&zip_xy_transform
         (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
-        <&zip_temp_layer 6 0>;
+        <&precision_scale>, <&zip_temp_layer 6 0>;
 
     /* Layer 5 uses desktop gestures, with no pointer output. No axis lock
      * here: its lock threshold and dominance filter swallowed the start of
@@ -95,6 +96,19 @@
         start-delta = <3>;
         max-delta = <16>;
         max-multiplier = <3>;
+    };
+
+    /* Hold-to-slow pointer (Space on the MOUSE layer), see drivers/keymap/precision.c. */
+    precision_scale: precision_scale {
+        compatible = "custom,input-processor-precision";
+        #input-processor-cells = <0>;
+    };
+
+    behaviors {
+        precision: precision {
+            compatible = "custom,behavior-precision";
+            #binding-cells = <0>;
+        };
     };
 
     pan_direction: pan_direction {

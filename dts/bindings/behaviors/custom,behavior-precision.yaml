@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT
+description: Hold to slow the pointer (pairs with custom,input-processor-precision)
+compatible: "custom,behavior-precision"
+include: zero_param.yaml

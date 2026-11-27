@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT
+description: Halve pointer X/Y motion while the precision behavior is held
+compatible: "custom,input-processor-precision"
+include: ip_zero_param.yaml
