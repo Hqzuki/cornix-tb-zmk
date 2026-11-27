@@ -38,9 +38,17 @@ static bool ready;
 static int64_t next_sync[ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT];
 static uint8_t peripheral_links;
 static atomic_t resync; /* set on split reconnect */
-/* Changes are pushed at once; this periodic resend is only a safety net. */
-#define SYNC_RETRY_MS   100
-#define SYNC_REFRESH_MS 30000
+/* Changes are pushed at once; this periodic resend is only a safety net.
+ * ZMK's central queues a behavior write and returns 0 even when the half's GATT
+ * discovery is not finished yet (the write is then dropped silently, and the
+ * write has no response), so a return code cannot tell us the half got it.
+ * After every (re)connect we therefore resend every SYNC_BURST_MS for
+ * SYNC_BURST_WINDOW_MS; the receiver ignores unchanged state. */
+#define SYNC_RETRY_MS        100
+#define SYNC_BURST_MS        300
+#define SYNC_BURST_WINDOW_MS 20000
+#define SYNC_REFRESH_MS      10000
+static int64_t burst_until;
 static void invalidate_sync(void) {
     for (size_t i = 0; i < ARRAY_SIZE(next_sync); i++) { next_sync[i] = 0; }
 }
@@ -52,6 +60,20 @@ static bool usb_powered(void) {
 }
 
 static void wake_render(void);
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+/* Highest active layer, skipping the auto-mouse temp layer: it sits above
+ * whatever layer the user is on and would otherwise blank the layer LED. */
+static uint8_t displayed_layer(void) {
+    for (int i = zmk_keymap_highest_layer_active(); i >= 0; i--) {
+        zmk_keymap_layer_id_t id = zmk_keymap_layer_index_to_id(i);
+        if (id != ZMK_KEYMAP_LAYER_ID_INVAL && id != STATUS_LAYER_MOUSE &&
+            zmk_keymap_layer_active(id)) {
+            return id;
+        }
+    }
+    return zmk_keymap_layer_default();
+}
+#endif
 int cornix_status_receive(uint32_t profile, uint32_t flags) {
     k_mutex_lock(&state_lock, K_FOREVER);
     bool ok = status_receive(&state, profile, flags, k_uptime_get());
@@ -112,7 +134,7 @@ static void render(struct k_work *work) {
             zmk_ble_active_profile_is_connected(), zmk_ble_active_profile_is_open(), now)) {
         invalidate_sync();
     }
-    uint8_t layer = zmk_keymap_layer_index_to_id(zmk_keymap_highest_layer_active());
+    uint8_t layer = displayed_layer();
     bool idle = zmk_activity_get_state() != ZMK_ACTIVITY_ACTIVE;
     if (!state.layer_valid || state.layer != layer || state.idle != idle) {
         status_layer(&state, true, layer);
@@ -133,7 +155,10 @@ static void render(struct k_work *work) {
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     /* Retry after discovery/encryption and resync after reconnect. The receiver
      * ignores unchanged state, so retries never restart a visible pattern. */
-    if (atomic_cas(&resync, 1, 0)) { invalidate_sync(); }
+    if (atomic_cas(&resync, 1, 0)) {
+        invalidate_sync();
+        burst_until = now + SYNC_BURST_WINDOW_MS;
+    }
     for (size_t i = 0; i < ARRAY_SIZE(next_sync); i++) {
         if (!snapshot.peer_connected || !snapshot.profile_valid || now < next_sync[i]) {
             continue;
@@ -144,7 +169,8 @@ static void render(struct k_work *work) {
         };
         struct zmk_behavior_binding_event event = {.timestamp = now};
         int rc = zmk_split_central_invoke_behavior(i, &binding, event, true);
-        next_sync[i] = now + (rc < 0 ? SYNC_RETRY_MS : SYNC_REFRESH_MS);
+        next_sync[i] = now + (rc < 0 ? SYNC_RETRY_MS :
+                              now < burst_until ? SYNC_BURST_MS : SYNC_REFRESH_MS);
     }
 #endif
     /* Send first: enabling the local LED rail may sleep for 10 ms. */
@@ -152,10 +178,7 @@ static void render(struct k_work *work) {
 #if IS_ENABLED(CONFIG_CORNIX_TB_CENTRAL)
     /* XIAO's onboard RGB is only a local battery/charging indicator. Do not
      * mirror peer-link or low-battery alerts there; Cornix WS2812s show those. */
-    if (!snapshot.powered &&
-        !(snapshot.layer_valid && snapshot.layer == 6)) {
-        frame.inner = (struct status_rgb){0};
-    }
+    if (!snapshot.powered) { frame.inner = (struct status_rgb){0}; }
     frame.outer = (struct status_rgb){0};
 #endif
     if (ready) { status_backend_write(frame, now); }
