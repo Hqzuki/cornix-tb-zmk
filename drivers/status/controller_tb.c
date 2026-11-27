@@ -133,7 +133,7 @@ static void render(struct k_work *work) {
             continue;
         }
         struct zmk_behavior_binding binding = {
-            .behavior_dev = "ls", .param1 = snapshot.profile,
+            .behavior_dev = "ls", .param1 = status_sync_profile(&snapshot, now),
             .param2 = status_sync_flags(&snapshot),
         };
         struct zmk_behavior_binding_event event = {.timestamp = now};

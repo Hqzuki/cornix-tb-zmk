@@ -25,6 +25,9 @@ struct status_state {
     /* ZMK activity state is still synchronized for split behavior and sleep.
      * It does not select a separate LED mode. */
     bool idle, remote_active;
+    /* Breathing phase offset (ms) to the central's clock, so every half's
+     * breathing LED runs in step. 0 on the central itself. */
+    int32_t phase_offset;
 };
 
 /* Single source of defaults for firmware. ROLE: central = Cornix
@@ -73,10 +76,31 @@ static inline uint32_t status_sync_flags(const struct status_state *s) {
            (s->layer_valid ? STATUS_SYNC_LAYER | ((uint32_t)s->layer << 8) : 0);
 }
 
-static inline bool status_receive(struct status_state *s, uint32_t profile, uint32_t flags,
+/* Breathing period shared by every half, and the param1 phase field:
+ * bits 0-7 profile, bits 8-19 central breathing phase (ms), bit 31 = phase present. */
+#define STATUS_BREATH_MS   3000
+#define STATUS_SYNC_PHASE  0x80000000u
+
+static inline uint32_t status_breath_phase(const struct status_state *s, int64_t now) {
+    int64_t t = (now + s->phase_offset) % STATUS_BREATH_MS;
+    return (uint32_t)(t < 0 ? t + STATUS_BREATH_MS : t);
+}
+
+static inline uint32_t status_sync_profile(const struct status_state *s, int64_t now) {
+    return (uint32_t)s->profile | (status_breath_phase(s, now) << 8) | STATUS_SYNC_PHASE;
+}
+
+static inline bool status_receive(struct status_state *s, uint32_t param, uint32_t flags,
                                   int64_t now) {
-    if (profile > 255 || (flags & ~STATUS_SYNC_MASK)) {
+    uint32_t profile = param & 0xffu;
+    if ((param & ~(STATUS_SYNC_PHASE | 0xfffffu)) || (flags & ~STATUS_SYNC_MASK)) {
         return false;
+    }
+    if (param & STATUS_SYNC_PHASE) {
+        uint32_t phase = (param >> 8) & 0xfffu;
+        if (phase < STATUS_BREATH_MS) {
+            s->phase_offset = (int32_t)phase - (int32_t)(now % STATUS_BREATH_MS);
+        }
     }
     status_profile(s, profile, flags & 1, flags & 2, now);
     status_layer(s, flags & STATUS_SYNC_LAYER, (flags >> 8) & 0xff);
@@ -217,7 +241,7 @@ static inline struct status_frame status_render(const struct status_state *s, in
                 };
 
                 uint8_t brightness =
-                    layer_breath[((now % 3000) * 60) / 3000] * 13 / 32;
+                    layer_breath[(status_breath_phase(s, now) * 60) / STATUS_BREATH_MS] * 13 / 32;
 
                 /* Breathe in the layer's own colour (TB: 0 MAC blue, 1 WIN red;
                  * stock: 0 WIN red, 1 MAC blue). */
@@ -237,7 +261,7 @@ static inline struct status_frame status_render(const struct status_state *s, in
             24,25,27,28,29,30,31,31,32,32,32,32,31,31,30,29,28,27,25,24,
             23,21,19,18,16,14,13,11,9,8,7,5,4,3,2,1,1,0,0,0
         };
-        const uint8_t step = profile_breath[((now % 3000) * 60) / 3000];
+        const uint8_t step = profile_breath[(status_breath_phase(s, now) * 60) / STATUS_BREATH_MS];
         const struct status_rgb base = status_profile_color(s->profile);
         f.outer.r = base.r * step / 32;
         f.outer.g = base.g * step / 32;
