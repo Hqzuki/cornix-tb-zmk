@@ -221,7 +221,7 @@ static int status_init(void) {
     if (!state.peer_known) { status_peer(&state, false, k_uptime_get()); }
     status_power(&state, usb_powered(), k_uptime_get());
     k_mutex_unlock(&state_lock);
-    k_work_reschedule(&render_work, K_MSEC(500));
+    k_work_reschedule(&render_work, K_NO_WAIT); /* light up at boot without delay */
     return 0;
 }
 SYS_INIT(status_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
