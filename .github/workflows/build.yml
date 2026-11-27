@@ -61,6 +61,9 @@ jobs:
           { echo "right=$right"; echo "left=$left"; echo "tb=$tb"; echo "reset=$reset"; } >> "$GITHUB_OUTPUT"
 
   # Same ZMK commit as config/west.yml; bump all four together.
+  # The jobs run one after another: ZMK's reusable workflow merges and deletes
+  # every "artifact-*" upload of the run, so parallel calls broke each other's
+  # merge step.
   right:
     needs: changes
     if: needs.changes.outputs.right == 'true'
@@ -69,22 +72,22 @@ jobs:
       build_matrix_path: build-right.yaml
       archive_name: firmware-right
   left:
-    needs: changes
-    if: needs.changes.outputs.left == 'true'
+    needs: [changes, right]
+    if: ${{ !cancelled() && needs.changes.outputs.left == 'true' }}
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
     with:
       build_matrix_path: build-left.yaml
       archive_name: firmware-left
   tb:
-    needs: changes
-    if: needs.changes.outputs.tb == 'true'
+    needs: [changes, left]
+    if: ${{ !cancelled() && needs.changes.outputs.tb == 'true' }}
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
     with:
       build_matrix_path: build-tb.yaml
       archive_name: firmware-tb
   reset:
-    needs: changes
-    if: needs.changes.outputs.reset == 'true'
+    needs: [changes, tb]
+    if: ${{ !cancelled() && needs.changes.outputs.reset == 'true' }}
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
     with:
       build_matrix_path: build-reset.yaml
