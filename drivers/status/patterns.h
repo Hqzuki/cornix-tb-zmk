@@ -170,6 +170,11 @@ static inline struct status_rgb status_layer_color(uint8_t layer) {
 static inline struct status_frame status_render(const struct status_state *s, int64_t now) {
     struct status_frame f = {0};
 
+    /* Turn off all LEDs while idle. */
+    if (s->idle) {
+        return f;
+    }
+
     const struct status_rgb red = {13,0,0};
     const struct status_rgb blue = {0,0,13};
     const struct status_rgb green = {0,13,0};
