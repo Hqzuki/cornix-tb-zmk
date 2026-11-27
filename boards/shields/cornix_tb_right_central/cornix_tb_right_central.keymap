@@ -42,7 +42,17 @@
     lock-threshold = <8>;
 };
 
+/* Layer-tap keys switch the layer the moment they are pressed
+ * (hold-while-undecided); a quick tap still sends its key. With the ball this
+ * removes the 200 ms wait before PAN/BLUETOOTH take over (also from AML). */
+&lt {
+    hold-while-undecided;
+};
+
 &zip_temp_layer {
+    /* AML only starts if no key was typed in the last 250 ms, so brushing the
+     * ball while typing on the keys next to it does not switch to MOUSE. */
+    require-prior-idle-ms = <250>;
     /* Release AML when ESC, Tab, modifiers, or control keys are pressed.
      * Layer keys (30, 31 = BLUETOOTH layer-taps, 42 = BLUETOOTH, 43 = GESTURE,
      * 44 = NUMFN) also release it, so a held layer always wins over AML. */
