@@ -72,7 +72,9 @@
         layers = <4>;
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,
             <&zip_axis_lock>, <&zip_xy_to_scroll_mapper>,
-            <&pan_direction>, <&zip_scroll_scaler 1 12>;
+            <&zip_scroll_scaler 1 12>;
+        /* &pan_direction (Mac-only horizontal flip) removed: after the X axis
+         * fix the flip made Mac PAN left/right backwards. */
     };
 
     /* While NUMFN or BLUETOOTH is held the ball does nothing: no cursor
