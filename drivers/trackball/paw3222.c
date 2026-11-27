@@ -17,8 +17,11 @@
 #include <string.h>
 LOG_MODULE_REGISTER(cornix_paw, CONFIG_ZMK_LOG_LEVEL);
 
-/* PAW3222 OPERATION_MODE: enable automatic Sleep1, Sleep2 and Sleep3
- * downshift while motion polling is inactive. */
+/* PAW3222 OPERATION_MODE (0x05) automatic Sleep1/2/3 downshift bits.
+ * They are OFF while the keyboard is awake: a downshifted sensor samples
+ * slowly, so after each short pause the first small movement arrives late
+ * (fine, slow ball movement felt laggy). They are turned ON only when the
+ * device is suspended (System OFF), to save power while sleeping. */
 #define PAW3222_SLEEP_MODES (BIT(5) | BIT(4) | BIT(3))
 
 /* Candidate GPIOs and the detected signal-role mapping, kept in RAM only. */
@@ -55,13 +58,22 @@ static bool configure(const struct paw_config *c, uint16_t cpi) {
     k_sleep(K_MSEC(2));
     if (write_reg(c, 0x09, 0x5a) < 0) { return false; }
     int op = read_reg(c, 0x05);
-    bool ok = op >= 0 && write_reg(c, 0x05, op | PAW3222_SLEEP_MODES) >= 0 &&
+    bool ok = op >= 0 && write_reg(c, 0x05, op & ~PAW3222_SLEEP_MODES) >= 0 &&
               write_reg(c, 0x0d, cpi / 38) >= 0 && write_reg(c, 0x0e, cpi / 38) >= 0;
     int lock = write_reg(c, 0x09, 0);
     if (!ok || lock < 0) { return false; }
     if (read_reg(c, 0x02) < 0 || read_reg(c, 0x03) < 0 ||
         read_reg(c, 0x04) < 0 || read_reg(c, 0x12) < 0) { return false; }
     return read_reg(c, 0x00) == 0x30;
+}
+/* Switch the sensor's automatic sleep downshift (see PAW3222_SLEEP_MODES). */
+static int set_sleep_modes(const struct paw_config *c, bool enable) {
+    if (write_reg(c, 0x09, 0x5a) < 0) { return -EIO; }
+    int op = read_reg(c, 0x05);
+    int rc = op < 0 ? op : write_reg(c, 0x05, enable ? (op | PAW3222_SLEEP_MODES)
+                                                     : (op & ~PAW3222_SLEEP_MODES));
+    int lock = write_reg(c, 0x09, 0);
+    return rc < 0 ? rc : lock;
 }
 static void release_candidates(const struct paw_config *base) {
     for (int i = 0; i < ARRAY_SIZE(base->candidates); i++) {
@@ -262,7 +274,10 @@ static int paw_init(const struct device *dev) {
 }
 #if IS_ENABLED(CONFIG_PM_DEVICE)
 static void resume_sampling(struct paw_data *d) {
-    if (d->port) { gpio_pin_interrupt_configure_dt(&d->port->motion, GPIO_INT_DISABLE); }
+    if (d->port) {
+        gpio_pin_interrupt_configure_dt(&d->port->motion, GPIO_INT_DISABLE);
+        set_sleep_modes(d->port, false); /* full frame rate while awake */
+    }
     atomic_clear(&d->suspended);
     schedule(d, K_NO_WAIT);
 }
@@ -289,9 +304,10 @@ static int paw_pm_action(const struct device *dev, enum pm_device_action action)
             resume_sampling(d);
             return level < 0 ? level : -EBUSY;
         }
-        /* Keep automatic Sleep1/2/3 downshift enabled while the host sleeps.
+        /* Enable automatic Sleep1/2/3 downshift only while the host sleeps.
          * Level sensing is retained by nRF52840 System OFF, unlike an edge.
          */
+        set_sleep_modes(c, true);
         int rc = gpio_pin_interrupt_configure_dt(&c->motion, GPIO_INT_LEVEL_ACTIVE);
         if (rc < 0) { resume_sampling(d); return rc; }
         level = gpio_pin_get_dt(&c->motion);
