@@ -209,7 +209,7 @@ static inline struct status_frame status_render(const struct status_state *s, in
     if (s->layer_outer) {
         if (s->layer_valid) {
             if (s->layer == 0 || s->layer == 1) {
-                /* WIN: red / MAC: blue, breathing over a 3-second cycle. */
+                /* Base layers (WIN/MAC) breathe over a 3-second cycle. */
                 static const uint8_t layer_breath[60] = {
                     0,0,0,1,1,2,3,4,5,7,8,9,11,13,14,16,18,19,21,23,
                     24,25,27,28,29,30,31,31,32,32,32,32,31,31,30,29,28,27,25,24,
@@ -219,11 +219,12 @@ static inline struct status_frame status_render(const struct status_state *s, in
                 uint8_t brightness =
                     layer_breath[((now % 3000) * 60) / 3000] * 13 / 32;
 
-                if (s->layer == 0) {
-                    f.outer.r = brightness;
-                } else {
-                    f.outer.b = brightness;
-                }
+                /* Breathe in the layer's own colour (TB: 0 MAC blue, 1 WIN red;
+                 * stock: 0 WIN red, 1 MAC blue). */
+                const struct status_rgb base = status_layer_color(s->layer);
+                f.outer.r = base.r ? brightness : 0;
+                f.outer.g = base.g ? brightness : 0;
+                f.outer.b = base.b ? brightness : 0;
             } else {
                 f.outer = status_layer_color(s->layer);
             }
