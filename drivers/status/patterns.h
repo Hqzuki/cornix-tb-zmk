@@ -126,7 +126,7 @@ static inline struct status_rgb status_profile_color(uint8_t profile) {
 
 /* Layer ids follow the keymap definition order for each firmware variant. */
 static inline struct status_rgb status_layer_color(uint8_t layer) {
-#if defined(CONFIG_CORNIX_TB_CENTRAL) || defined(CONFIG_CORNIX_RIGHT_PERIPHERAL)
+#if defined(CONFIG_CORNIX_TB_CENTRAL) || defined(CONFIG_CORNIX_RIGHT_PERIPHERAL) || defined(CONFIG_CORNIX_LEFT_PERIPHERAL)
     /* TB: MAC, WIN, NUMFN, BLUETOOTH, PAN, GESTURE, MOUSE. */
     static const struct status_rgb colors[] = {
         {0,0,13},   /* 0 MAC: same blue as BT slot 0 */
@@ -169,7 +169,7 @@ static inline struct status_frame status_render(const struct status_state *s, in
      * profile indicator; temporarily replace only the inner LED while BT is
      * the displayed layer. Unknown is dark, distinct from a measured 0%. */
     const uint8_t bluetooth_layer =
-#if defined(CONFIG_CORNIX_TB_CENTRAL) || defined(CONFIG_CORNIX_RIGHT_PERIPHERAL)
+#if defined(CONFIG_CORNIX_TB_CENTRAL) || defined(CONFIG_CORNIX_RIGHT_PERIPHERAL) || defined(CONFIG_CORNIX_LEFT_PERIPHERAL)
         3;
 #else
         7;

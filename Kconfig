@@ -27,6 +27,10 @@ config CORNIX_RIGHT_PERIPHERAL
     bool "Keep the right Cornix LED role when it is a peripheral"
     default y if SHIELD_CORNIX_TB_PERIPHERAL && BOARD_CORNIX_RIGHT
 
+config CORNIX_LEFT_PERIPHERAL
+    bool "Left Cornix LED status as a peripheral of the XIAO central"
+    default y if SHIELD_CORNIX_TB_PERIPHERAL && BOARD_CORNIX_LEFT
+
 config CORNIX_AUTO_OS
     bool "Detect Bluetooth host layout automatically"
     default y if CORNIX_KEYMAP && ZMK_SPLIT_ROLE_CENTRAL && !SHIELD_SETTINGS_RESET

@@ -7,7 +7,7 @@ include:
     artifact-name: Cornix_tb_central
 
   - board: cornix_left
-    shield: cornix_tb_peripheral
+    shield: cornix_indicator cornix_tb_peripheral
     artifact-name: Cornix_tb_left
 
   - board: cornix_right
