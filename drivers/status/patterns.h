@@ -232,40 +232,12 @@ static inline struct status_frame status_render(const struct status_state *s, in
 
     if (s->layer_outer) {
         if (s->layer_valid) {
-            if (s->layer == 0 || s->layer == 1) {
-                /* Base layers (WIN/MAC) breathe over a 3-second cycle. */
-                static const uint8_t layer_breath[60] = {
-                    0,0,0,1,1,2,3,4,5,7,8,9,11,13,14,16,18,19,21,23,
-                    24,25,27,28,29,30,31,31,32,32,32,32,31,31,30,29,28,27,25,24,
-                    23,21,19,18,16,14,13,11,9,8,7,5,4,3,2,1,1,0,0,0
-                };
-
-                uint8_t brightness =
-                    layer_breath[(status_breath_phase(s, now) * 60) / STATUS_BREATH_MS] * 13 / 32;
-
-                /* Breathe in the layer's own colour (TB: 0 MAC blue, 1 WIN red;
-                 * stock: 0 WIN red, 1 MAC blue). */
-                const struct status_rgb base = status_layer_color(s->layer);
-                f.outer.r = base.r ? brightness : 0;
-                f.outer.g = base.g ? brightness : 0;
-                f.outer.b = base.b ? brightness : 0;
-            } else {
-                f.outer = status_layer_color(s->layer);
-            }
+            /* Steady colour for every layer (WIN/MAC no longer breathe). */
+            f.outer = status_layer_color(s->layer);
         }
     } else if (s->profile_valid) {
-        /* Show the selected slot while active, even disconnected, breathing
-         * over the same 3-second cycle as the WIN/MAC layers on the right. */
-        static const uint8_t profile_breath[60] = {
-            0,0,0,1,1,2,3,4,5,7,8,9,11,13,14,16,18,19,21,23,
-            24,25,27,28,29,30,31,31,32,32,32,32,31,31,30,29,28,27,25,24,
-            23,21,19,18,16,14,13,11,9,8,7,5,4,3,2,1,1,0,0,0
-        };
-        const uint8_t step = profile_breath[(status_breath_phase(s, now) * 60) / STATUS_BREATH_MS];
-        const struct status_rgb base = status_profile_color(s->profile);
-        f.outer.r = base.r * step / 32;
-        f.outer.g = base.g * step / 32;
-        f.outer.b = base.b * step / 32;
+        /* Show the selected slot steadily while active, even disconnected. */
+        f.outer = status_profile_color(s->profile);
     }
 
     return f;
