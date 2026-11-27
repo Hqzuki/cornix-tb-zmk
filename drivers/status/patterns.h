@@ -230,9 +230,18 @@ static inline struct status_frame status_render(const struct status_state *s, in
             }
         }
     } else if (s->profile_valid) {
-        /* Show the selected slot continuously while active, even disconnected.
-         * This indicates selection, not whether the host link is up. */
-        f.outer = status_profile_color(s->profile);
+        /* Show the selected slot while active, even disconnected, breathing
+         * over the same 3-second cycle as the WIN/MAC layers on the right. */
+        static const uint8_t profile_breath[60] = {
+            0,0,0,1,1,2,3,4,5,7,8,9,11,13,14,16,18,19,21,23,
+            24,25,27,28,29,30,31,31,32,32,32,32,31,31,30,29,28,27,25,24,
+            23,21,19,18,16,14,13,11,9,8,7,5,4,3,2,1,1,0,0,0
+        };
+        const uint8_t step = profile_breath[((now % 3000) * 60) / 3000];
+        const struct status_rgb base = status_profile_color(s->profile);
+        f.outer.r = base.r * step / 32;
+        f.outer.g = base.g * step / 32;
+        f.outer.b = base.b * step / 32;
     }
 
     return f;
