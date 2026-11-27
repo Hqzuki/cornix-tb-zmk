@@ -4,24 +4,24 @@ include:
   - board: xiao_ble/nrf52840/zmk
     shield: cornix_tb_central
     snippet: studio-rpc-usb-uart
-    artifact-name: Cornix_tb_central
+    artifact-name: Crorb
 
   - board: cornix_left
     shield: cornix_indicator cornix_tb_peripheral
-    artifact-name: Cornix_tb_left
+    artifact-name: Crorb_l
 
   - board: cornix_right
     shield: cornix_indicator cornix_tb_peripheral
-    artifact-name: Cornix_tb_right
+    artifact-name: Crorb_r
 
   - board: xiao_ble/nrf52840/zmk
     shield: settings_reset
-    artifact-name: Cornix_tb_central_reset
+    artifact-name: Crorb_reset
 
   - board: cornix_left
     shield: settings_reset
-    artifact-name: Cornix_tb_left_reset
+    artifact-name: Crorb_l_reset
 
   - board: cornix_right
     shield: settings_reset
-    artifact-name: Cornix_tb_right_reset
+    artifact-name: Crorb_r_reset
