@@ -44,13 +44,14 @@
 
 &zip_temp_layer {
     /* Release AML when ESC, Tab, modifiers, or control keys are pressed.
-     * Layer keys (30, 31 = BLUETOOTH layer-taps, 42 = BLUETOOTH, 43 = GESTURE,
-     * 44 = NUMFN) also release it, so a held layer always wins over AML. */
+     * Layer keys (30, 31 = BLUETOOTH layer-taps, 43 = GESTURE, 44 = NUMFN) also
+     * release it, so a held layer always wins over AML. 42 (PAN) is kept: on the
+     * MOUSE layer it is a plain &mo 4, so PAN scrolling starts with no hold-tap wait. */
     excluded-positions = <
         1 2 3 4 5 6 7 8 9 10
         13 14 15 16 17 18 19 20 21 22
         25 26 27 28 29 32 33 34 35 36 37
-        41 46 47 48
+        41 42 46 47 48
     >;
 };
 
