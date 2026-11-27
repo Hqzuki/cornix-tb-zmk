@@ -66,20 +66,12 @@
             <&zip_axis_lock>, <&zip_mouse_gesture>, <&zip_xy_scaler 0 1>;
     };
 
+    /* PAN, and while NUMFN or BLUETOOTH is held: the ball scrolls (no AML). */
     pan_scroll {
-        layers = <4>;
+        layers = <2 3 4>;
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,
             <&zip_axis_lock>, <&zip_xy_to_scroll_mapper>,
             <&pan_direction>, <&zip_scroll_scaler 1 12>;
-    };
-
-    /* NUMFN and BLUETOOTH: plain pointer motion without the AML temp layer, so
-     * moving the ball while one of these layers is held cannot bring AML back
-     * on top of it. */
-    held_layer_no_aml {
-        layers = <2 3>;
-        input-processors = <&zip_xy_transform
-            (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>;
     };
 };
 
