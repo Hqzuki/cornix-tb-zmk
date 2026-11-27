@@ -34,6 +34,7 @@ struct paw_dev_config {
     const struct paw_config *pins;
     uint16_t cpi, interval;
     uint8_t deadzone;
+    uint8_t divisor;
 };
 struct paw_data {
     const struct device *dev;
@@ -45,6 +46,7 @@ struct paw_data {
     atomic_t suspended;
     uint8_t misses;
     int16_t pending_x, pending_y;
+    int16_t rem_x, rem_y; /* output-divisor remainders */
 };
 /* Probe every signal-pin permutation on boot; no mapping is written to flash. */
 K_THREAD_STACK_DEFINE(paw_stack, 1536);
@@ -235,8 +237,17 @@ static void sample_work(struct k_work *work) {
         if (read_xy(c, &x, &y) == 0 && (x || y) &&
             filter_micro_vibration(d, (int8_t)x, (int8_t)y, cfg->deadzone,
                                    &filtered_x, &filtered_y)) {
-            input_report_rel(d->dev, INPUT_REL_X, (int8_t)filtered_x, false, K_FOREVER);
-            input_report_rel(d->dev, INPUT_REL_Y, (int8_t)filtered_y, true, K_FOREVER);
+            /* Sensor runs at a high CPI so it notices tiny motion early; the
+             * output is divided back down with the remainder carried, so the
+             * cursor speed is host-independent and slow motion is not lumpy. */
+            int sx = filtered_x + d->rem_x, sy = filtered_y + d->rem_y;
+            int ox = sx / cfg->divisor, oy = sy / cfg->divisor;
+            d->rem_x = sx - ox * cfg->divisor;
+            d->rem_y = sy - oy * cfg->divisor;
+            if (ox || oy) {
+                input_report_rel(d->dev, INPUT_REL_X, (int8_t)ox, false, K_FOREVER);
+                input_report_rel(d->dev, INPUT_REL_Y, (int8_t)oy, true, K_FOREVER);
+            }
         }
     }
     if (gpio_pin_get_dt(&c->motion) > 0) {
@@ -332,6 +343,8 @@ static int paw_pm_action(const struct device *dev, enum pm_device_action action)
     BUILD_ASSERT(DT_INST_PROP(n, res_cpi) >= 608 && DT_INST_PROP(n, res_cpi) <= 4826 \
                  && DT_INST_PROP(n, res_cpi) % 38 == 0, "Invalid PAW3222 CPI"); \
     BUILD_ASSERT(DT_INST_PROP(n, poll_interval_ms) > 0, "Invalid polling interval"); \
+    BUILD_ASSERT(DT_INST_PROP(n, output_divisor) >= 1 && DT_INST_PROP(n, output_divisor) <= 8, \
+                 "output-divisor must be 1..8"); \
     BUILD_ASSERT(DT_INST_PROP_OR(n, deadzone, 1) >= 0 && DT_INST_PROP_OR(n, deadzone, 1) <= 16, \
                  "Sensor deadzone must be from 0 to 16"); \
     BUILD_ASSERT(DT_INST_PROP_LEN(n, autodetect_gpios) == 4, \
@@ -349,6 +362,7 @@ static int paw_pm_action(const struct device *dev, enum pm_device_action action)
         .pins = &paw_pins_##n, \
         .cpi = DT_INST_PROP(n, res_cpi), .interval = DT_INST_PROP(n, poll_interval_ms), \
         .deadzone = DT_INST_PROP_OR(n, deadzone, 1), \
+        .divisor = DT_INST_PROP(n, output_divisor), \
     }; \
     PM_DEVICE_DT_INST_DEFINE(n, paw_pm_action); \
     DEVICE_DT_INST_DEFINE(n, paw_init, PM_DEVICE_DT_INST_GET(n), &paw_data_##n, &paw_config_##n, \

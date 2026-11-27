@@ -19,3 +19,7 @@ properties:
     type: int
     default: 1
     description: Per-axis raw-count deadzone; sub-threshold deltas are accumulated and cancelling jitter is discarded
+  output-divisor:
+    type: int
+    default: 1
+    description: Divide reported motion (remainder carried); effective CPI = res-cpi / output-divisor
