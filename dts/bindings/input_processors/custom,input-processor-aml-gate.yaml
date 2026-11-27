@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT
+description: Arm the auto-mouse temp layer only after real ball travel (ignores micro-vibration)
+compatible: "custom,input-processor-aml-gate"
+include: ip_zero_param.yaml
+properties:
+  processor:
+    type: phandle
+    required: true
+    description: The zmk,input-processor-temp-layer instance to drive
+  layer:
+    type: int
+    required: true
+  timeout-ms:
+    type: int
+    default: 0
+  threshold:
+    type: int
+    default: 20
+    description: Sensor counts of |dx|+|dy| needed within window-ms before AML starts
+  window-ms:
+    type: int
+    default: 150

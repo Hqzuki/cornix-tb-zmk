@@ -50,9 +50,6 @@
 };
 
 &zip_temp_layer {
-    /* AML only starts if no key was typed in the last 250 ms, so brushing the
-     * ball while typing on the keys next to it does not switch to MOUSE. */
-    require-prior-idle-ms = <250>;
     /* Release AML when ESC, Tab, modifiers, or control keys are pressed.
      * Layer keys (30, 31 = BLUETOOTH layer-taps, 42 = BLUETOOTH, 43 = GESTURE,
      * 44 = NUMFN) also release it, so a held layer always wins over AML. */
@@ -66,10 +63,11 @@
 
 &cornix_tb_listener {
     /* Sensor is mounted 90 deg from the first guess: swap X/Y; X sign confirmed on hardware, Y not yet. */
-    /* &precision_scale halves the cursor while Space (&precision) is held on MOUSE. */
+    /* &precision_scale halves the cursor while Space (&precision) is held on MOUSE.
+     * &aml_gate drives the AML temp layer (6) only after real ball travel. */
     input-processors = <&zip_xy_transform
         (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
-        <&precision_scale>, <&zip_temp_layer 6 0>;
+        <&precision_scale>, <&aml_gate>;
 
     /* Layer 5 uses desktop gestures, with no pointer output. No axis lock
      * here: its lock threshold and dominance filter swallowed the start of
@@ -106,6 +104,17 @@
         start-delta = <3>;
         max-delta = <16>;
         max-multiplier = <3>;
+    };
+
+    /* Auto-mouse gate: AML (MOUSE layer 6) starts only after 20 counts of ball
+     * travel within 150 ms; micro-vibration is ignored. See drivers/keymap/aml_gate.c. */
+    aml_gate: aml_gate {
+        compatible = "custom,input-processor-aml-gate";
+        #input-processor-cells = <0>;
+        processor = <&zip_temp_layer>;
+        layer = <6>;
+        threshold = <20>;
+        window-ms = <150>;
     };
 
     /* Hold-to-slow pointer (Space on the MOUSE layer), see drivers/keymap/precision.c. */
