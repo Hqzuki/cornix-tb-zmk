@@ -58,12 +58,14 @@
         (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
         <&zip_temp_layer 6 0>;
 
-    /* Layer 5 uses desktop gestures, with no pointer output. */
+    /* Layer 5 uses desktop gestures, with no pointer output. No axis lock
+     * here: its lock threshold and dominance filter swallowed the start of
+     * a stroke; the gesture recogniser picks the direction itself. */
     desktop_layer_gesture {
         layers = <5>;
         input-processors = <&zip_xy_transform
             (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
-            <&zip_axis_lock>, <&zip_mouse_gesture>, <&zip_xy_scaler 0 1>;
+            <&zip_mouse_gesture>, <&zip_xy_scaler 0 1>;
     };
 
     pan_scroll {
