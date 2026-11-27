@@ -60,6 +60,15 @@
         (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
         <&zip_temp_layer 6 0>;
 
+    /* SLOW (layer 7, Space held while AML/MOUSE is active): half-speed cursor,
+     * and keep re-arming AML so the mouse layer stays on while moving. */
+    slow_cursor {
+        layers = <7>;
+        input-processors = <&zip_xy_transform
+            (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
+            <&zip_xy_scaler 1 2>, <&zip_temp_layer 6 0>;
+    };
+
     /* Layer 5 uses desktop gestures, with no pointer output. No axis lock
      * here: its lock threshold and dominance filter swallowed the start of
      * a stroke; the gesture recogniser picks the direction itself. */
