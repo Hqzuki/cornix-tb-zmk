@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 config CORNIX_LED_STATUS
     bool "Shared Cornix LED status"
-    default y if SHIELD_CORNIX_INDICATOR || CORNIX_TB_CENTRAL || CORNIX_RIGHT_PERIPHERAL
+    default y if SHIELD_CORNIX_INDICATOR || CORNIX_TB_TRACKBALL
     depends on ZMK_BLE
 
 config CORNIX_KEYMAP
     bool "Cornix keymap support"
-    default y if (BOARD_CORNIX_RIGHT || CORNIX_TB_CENTRAL) && ZMK_BLE
+    default y if CORNIX_RIGHT_CENTRAL && ZMK_BLE
 
 config CORNIX_PAW3222
     bool "PAW3222 three-wire GPIO driver"
@@ -19,17 +19,21 @@ config CORNIX_PAW3222_PROBE_ATTEMPTS
     range 1 100
     default 5
 
-config CORNIX_TB_CENTRAL
-    bool "XIAO trackball central for both Cornix halves"
-    default y if SHIELD_CORNIX_TB_CENTRAL
-
-config CORNIX_RIGHT_PERIPHERAL
-    bool "Keep the right Cornix LED role when it is a peripheral"
-    default y if SHIELD_CORNIX_TB_PERIPHERAL && BOARD_CORNIX_RIGHT
+# Role symbols. Exactly one of these is set per normal image; the settings_reset
+# images set none of them. Topology: the Cornix RIGHT half is the split central
+# (host BLE/USB, keymap, Studio, pointer pipeline); the Cornix LEFT half and the
+# XIAO trackball are its two peripherals.
+config CORNIX_RIGHT_CENTRAL
+    bool "Cornix right half as split central (keymap, host link, pointer pipeline)"
+    default y if SHIELD_CORNIX_TB_RIGHT_CENTRAL
 
 config CORNIX_LEFT_PERIPHERAL
-    bool "Left Cornix LED status as a peripheral of the XIAO central"
+    bool "Cornix left half as a peripheral of the right central (outer LED = layer)"
     default y if SHIELD_CORNIX_TB_PERIPHERAL && BOARD_CORNIX_LEFT
+
+config CORNIX_TB_TRACKBALL
+    bool "XIAO trackball peripheral (forwards pointer events, local-only RGB LED)"
+    default y if SHIELD_CORNIX_TB_TRACKBALL_PERIPHERAL
 
 config CORNIX_AUTO_OS
     bool "Detect Bluetooth host layout automatically"

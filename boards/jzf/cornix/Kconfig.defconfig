@@ -3,7 +3,7 @@
 # Copyright (c) 2020 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-## Stock Cornix left: split peripheral of the Cornix right central
+## Cornix left: split peripheral of the Cornix right central
 if BOARD_CORNIX_LEFT
 
 config ZMK_SPLIT
@@ -35,18 +35,20 @@ config ZMK_RGB_UNDERGLOW_EXT_POWER
 
 endif # BOARD_CORNIX_LEFT
 
-# TB split peripherals advertise their individual side names.
+# TB split topology: the left half advertises its own name.
 if BOARD_CORNIX_LEFT && SHIELD_CORNIX_TB_PERIPHERAL
 
 config ZMK_KEYBOARD_NAME
-	default "Crorb_l"
+	default "Crorb_left"
 
 endif # BOARD_CORNIX_LEFT && SHIELD_CORNIX_TB_PERIPHERAL
 
-# Pure Cornix: stock right is the host-facing central.
-if BOARD_CORNIX_RIGHT && !SHIELD_CORNIX_TB_PERIPHERAL
+# Cornix right = split central that owns the host link (BLE + USB). Every right
+# image (normal and settings_reset) uses these defaults; the shield .conf adds
+# the rest (peripheral count, Studio, tuning).
+if BOARD_CORNIX_RIGHT
 config ZMK_KEYBOARD_NAME
-    default "Cornix"
+    default "Crorb_right"
 config ZMK_SPLIT
     default y
 config ZMK_SPLIT_ROLE_CENTRAL
@@ -58,20 +60,13 @@ config USB_NRFX
 config USB_DEVICE_STACK
     default y if USB
 config BT_MAX_CONN
-    default 6 if ZMK_BLE
+    default 7 if ZMK_BLE
 config BT_MAX_PAIRED
-    default 6 if ZMK_BLE
+    default 7 if ZMK_BLE
 config ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING
     default y if ZMK_SPLIT_BLE
 config ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_PROXY
     default y if ZMK_SPLIT_BLE
 config ZMK_STUDIO
     default y if !SHIELD_SETTINGS_RESET
-endif # BOARD_CORNIX_RIGHT && !SHIELD_CORNIX_TB_PERIPHERAL
-
-if BOARD_CORNIX_RIGHT && SHIELD_CORNIX_TB_PERIPHERAL
-
-config ZMK_KEYBOARD_NAME
-	default "Crorb_r"
-
-endif # BOARD_CORNIX_RIGHT && SHIELD_CORNIX_TB_PERIPHERAL
+endif # BOARD_CORNIX_RIGHT

@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: MIT
+config SHIELD_CORNIX_TB_RIGHT_CENTRAL
+    def_bool $(shields_list_contains,cornix_tb_right_central)

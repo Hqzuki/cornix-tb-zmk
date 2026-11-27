@@ -1,4 +1,4 @@
-/* Cornix TB Keymap Editor map; built by the XIAO trackball central. */
+/* Cornix TB Keymap Editor map; built by the Cornix right half (split central). */
 
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 1200
 

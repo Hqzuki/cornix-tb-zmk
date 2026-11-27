@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: MIT
+ * Cornix RIGHT half as the split central. Matrix, encoder, physical layout and
+ * the led_sync behavior come from the board (cornix_right.dts); the WS2812
+ * strip from the cornix_indicator shield. This overlay only adds the pointer
+ * pipeline for the XIAO trackball peripheral.
+ */
+
+/ {
+    /* Proxy for the trackball's input device. The XIAO peripheral declares a
+     * zmk,input-split node with the same reg; events it forwards over BLE are
+     * re-injected here and then processed by the listener below. */
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        cornix_tb_proxy: cornix_tb_proxy@0 {
+            compatible = "zmk,input-split";
+            reg = <0>;
+        };
+    };
+
+    /* Input processors, overrides and mouse gestures for this listener are in
+     * cornix_tb_right_central.keymap. */
+    cornix_tb_listener: cornix_tb_listener {
+        compatible = "zmk,input-listener";
+        device = <&cornix_tb_proxy>;
+    };
+};

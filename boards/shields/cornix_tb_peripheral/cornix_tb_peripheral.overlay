@@ -1,3 +1,3 @@
 /* SPDX-License-Identifier: MIT */
-/* Physical matrix and encoder remain the stock right board definition. */
-#define CORNIX_TB_PERIPHERAL 1
+/* Cornix left half as a split peripheral: the physical matrix and encoder stay
+ * the stock board definition. */

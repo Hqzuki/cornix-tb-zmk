@@ -1,27 +1,29 @@
-# Cornix TB: XIAO is central and the Cornix halves are peripherals.
+# Cornix TB: the Cornix RIGHT half is the split central (host link, keymap,
+# Studio, pointer pipeline); the Cornix LEFT half and the XIAO trackball are
+# its two peripherals. Flash settings_reset images first, then the normal ones.
 ---
 include:
-  - board: xiao_ble/nrf52840/zmk
-    shield: cornix_tb_central
+  - board: cornix_right
+    shield: cornix_indicator cornix_tb_right_central
     snippet: studio-rpc-usb-uart
-    artifact-name: Crorb
+    artifact-name: Crorb_right
 
   - board: cornix_left
     shield: cornix_indicator cornix_tb_peripheral
-    artifact-name: Crorb_l
+    artifact-name: Crorb_left
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: cornix_tb_trackball_peripheral
+    artifact-name: Crorb_tb
 
   - board: cornix_right
-    shield: cornix_indicator cornix_tb_peripheral
-    artifact-name: Crorb_r
+    shield: settings_reset
+    artifact-name: Crorb_right_reset
+
+  - board: cornix_left
+    shield: settings_reset
+    artifact-name: Crorb_left_reset
 
   - board: xiao_ble/nrf52840/zmk
     shield: settings_reset
-    artifact-name: Crorb_reset
-
-  - board: cornix_left
-    shield: settings_reset
-    artifact-name: Crorb_l_reset
-
-  - board: cornix_right
-    shield: settings_reset
-    artifact-name: Crorb_r_reset
+    artifact-name: Crorb_tb_reset

@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: MIT
+ * XIAO trackball as a split peripheral: PAW3222 sensor + ZMK input split.
  * XIAO signal allocation supplied for the user's LisM sensor wiring.
  * GPIO half-duplex SDIO avoids connecting SPIM MOSI/MISO to the same pin.
  * No assumed LisM FFC pin numbers: wire by verified signal names.
@@ -14,7 +15,8 @@
         zmk,physical-layout = &layout_49;
     };
 
-    /* No local keys, no fabricated GPIO matrix or periodic key events. */
+    /* No local keys, no fabricated GPIO matrix or periodic key events.
+     * Required by the build only. */
     kscan_none: kscan_none {
         compatible = "zmk,kscan-mock";
         rows = <4>;
@@ -35,11 +37,23 @@
         deadzone = <0>;
     };
 
-    cornix_tb_listener: cornix_tb_listener {
-        compatible = "zmk,input-listener";
-        device = <&cornix_tb_paw>;
+    /* Forward the sensor's raw input events to the central (Cornix right).
+     * reg must match the proxy node on the central. All processing (XY swap,
+     * AML, gestures, scroll...) happens on the central. */
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        cornix_tb_split: cornix_tb_split@0 {
+            compatible = "zmk,input-split";
+            reg = <0>;
+            device = <&cornix_tb_paw>;
+        };
     };
 
+    /* The central pushes layer/profile to every peripheral through this
+     * behavior. The XIAO applies it to its inner LED state (battery colour while
+     * the BLUETOOTH layer is held). */
     behaviors {
         led_sync: ls { compatible = "cornix,led-sync"; #binding-cells = <2>; };
     };

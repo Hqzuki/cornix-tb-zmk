@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: MIT */
-/* The TB-specific editable map is the source of its key layers. */
+/* Cornix RIGHT half = central. The TB-specific editable map is the source of
+ * its key layers; the pointer listener/processors below act on the trackball
+ * events forwarded by the XIAO peripheral (see the overlay). */
 #include "../../../config/Cornix_tb.keymap"
 #include <mouse-gesture.dtsi>
 
