@@ -171,7 +171,7 @@ static inline struct status_frame status_render(const struct status_state *s, in
     struct status_frame f = {0};
 
     /* Turn off all LEDs while idle. */
-    if (s->idle) {
+    if (s->idle && !s->powered) {
         return f;
     }
 
