@@ -162,7 +162,7 @@ static inline struct status_rgb status_layer_color(uint8_t layer) {
         {8,8,8},    /* 3 BLUETOOTH: white */
         {13,8,0},   /* 4 PAN: yellow */
         {13,0,13},  /* 5 GESTURE: magenta */
-        {64,64,64},    /* 6 MOUSE: darkGray */
+        {255,165,0},    /* 6 MOUSE: orange */
     };
     return layer < 7 ? colors[layer] : (struct status_rgb){0};
 }
