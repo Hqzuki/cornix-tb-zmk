@@ -23,14 +23,17 @@
 #endif
 #include "backend.h"
 LOG_MODULE_REGISTER(cornix_led, CONFIG_ZMK_LOG_LEVEL);
-/* Outer LED: the right half keeps the host-profile role, the left shows the
- * layer. Inner peer-link blink (blue while the central is not found): both
- * halves show it; only the XIAO central hides it (its LED is local-only). */
+/* Roles (see Kconfig):
+ *  - right half = split central: outer LED = host profile, inner = its own
+ *    battery/charging plus a blue peer-link blink while a peripheral (left half
+ *    or XIAO) is connecting/connected. It pushes layer/profile to the peripherals.
+ *  - left half = peripheral: outer LED = layer colour (synced from the right).
+ *  - XIAO trackball = peripheral: only its onboard RGB LED (inner) = local
+ *    battery/charging; the peer-link blink is hidden and the outer LED is unused. */
 static struct status_state state = {
     STATUS_STATE_DEFAULTS,
-    .hide_peer = IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL),
-    .layer_outer = !(IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL) ||
-                     IS_ENABLED(CONFIG_CORNIX_RIGHT_PERIPHERAL)),
+    .hide_peer = IS_ENABLED(CONFIG_CORNIX_TB_TRACKBALL),
+    .layer_outer = IS_ENABLED(CONFIG_CORNIX_LEFT_PERIPHERAL),
 };
 K_MUTEX_DEFINE(state_lock);
 static bool ready;
@@ -139,7 +142,7 @@ static void render(struct k_work *work) {
     if (!state.layer_valid || state.layer != layer || state.idle != idle) {
         status_layer(&state, true, layer);
         state.idle = idle;
-        invalidate_sync(); /* push changes to every connected half immediately */
+        invalidate_sync(); /* push changes to every connected peripheral immediately */
     }
 #else
     state.idle = zmk_activity_get_state() != ZMK_ACTIVITY_ACTIVE && !state.remote_active;
@@ -159,6 +162,10 @@ static void render(struct k_work *work) {
         invalidate_sync();
         burst_until = now + SYNC_BURST_WINDOW_MS;
     }
+    /* Peripheral slots are filled in connection order, so the left half and the
+     * XIAO can be in either slot. Both images define the "ls" behavior (the
+     * XIAO uses it for its battery/BLUETOOTH-layer inner colour), so we simply
+     * send to every slot. */
     for (size_t i = 0; i < ARRAY_SIZE(next_sync); i++) {
         if (!snapshot.peer_connected || !snapshot.profile_valid || now < next_sync[i]) {
             continue;
@@ -175,7 +182,8 @@ static void render(struct k_work *work) {
 #endif
     /* Send first: enabling the local LED rail may sleep for 10 ms. */
     struct status_frame frame = status_render(&snapshot, now);
-#if IS_ENABLED(CONFIG_CORNIX_TB_CENTRAL)
+#if IS_ENABLED(CONFIG_CORNIX_TB_TRACKBALL)
+    /* The XIAO has no outer LED. */
     frame.outer = (struct status_rgb){0};
 #endif
     if (ready) { status_backend_write(frame, now); }
