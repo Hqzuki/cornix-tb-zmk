@@ -271,7 +271,7 @@
         MAC {
             display-name = "MAC";
             bindings = <
-&kp ESC         &kp Q      &kp W         &kp E      &kp R        &kp T                                      &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
+&kp ESC         &kp Q      &kp W         &kp E      &kp R        &kp T                                      &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &kp BACKSPACE
 &kp TAB         &kp A      &kp S         &kp D      &kp F        &kp G                                      &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
 &kp LEFT_SHIFT  &kp Z      &kp X         &kp C      &kp V        &kp B  &lt (3) LG(LS(N3))  &lt (3) LG(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SEMICOLON SLASH
 &kp LEFT_GUI    &kp LCTRL  &kp LEFT_ALT  &kp SPACE  &lt 4 LANG2  &mo 5                                      &mo 2  &kp LANG1             &nav_left  &nav_down        &nav_right
@@ -285,7 +285,7 @@
         WIN {
             display-name = "WIN";
             bindings = <
-&kp ESC         &kp Q         &kp W         &kp E      &kp R        &kp T                               &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &bs_delete
+&kp ESC         &kp Q         &kp W         &kp E      &kp R        &kp T                               &kp Y  &kp U      &kp I      &kp O      &mt EQUAL MINUS  &kp BACKSPACE
 &kp TAB         &kp A         &kp S         &kp D      &kp F        &kp G                               &kp H  &kp J      &kp K      &kp L      &kp P            &kp ENTER
 &kp LEFT_SHIFT  &kp Z         &kp X         &kp C      &kp V        &kp B  &lt 3 PSCRN  &lt (3) LC(N0)  &kp N  &kp M      &kp COMMA  &kp DOT    &nav_up          &mt SEMICOLON SLASH
 &kp LCTRL       &kp LEFT_WIN  &kp LEFT_ALT  &kp SPACE  &lt 4 LANG2  &mo 5                               &mo 2  &kp LANG1             &nav_left  &nav_down        &nav_right
@@ -345,10 +345,10 @@
         MOUSE {
             display-name = "MOUSE";
             bindings = <
-&trans  &none   &none   &none  &none  &none                &none  &none     &none     &none     &none   &trans
-&trans  &none   &none   &none  &none  &none                &none  &mkp MB1  &mkp MB3  &mkp MB2  &none   &trans
-&trans  &none   &none   &none  &none  &none  &none  &none  &none  &mkp MB4  &none     &mkp MB5  &trans  &none
-&trans  &trans  &trans  &precision  &none  &none  &none  &none  &trans  &trans  &trans
+&trans  &none   &none   &none       &none  &none                &none  &none     &none     &none     &none   &trans
+&trans  &none   &none   &none       &none  &none                &none  &mkp MB1  &mkp MB3  &mkp MB2  &none   &trans
+&trans  &none   &none   &none       &none  &none  &none  &none  &none  &mkp MB4  &none     &mkp MB5  &trans  &none
+&trans  &trans  &trans  &precision  &none  &none                &none  &none               &trans    &trans  &trans
             >;
 
             sensor-bindings = <&enc_off &enc_off>;
